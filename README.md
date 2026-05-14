@@ -35,7 +35,7 @@ Estas entidades permiten organizar la información y establecer relaciones media
 - Especialidad: Programación  
 - Institución: CETis 61 
 - ## 📸 Fotografía
-<img width="236" height="248" alt="image" src="AQUI_PEGA_EL_LINK" />
+<img width="236" height="248" alt="image" src="https://github.com/LorettoMolina/SISTEMADEBLIBLIOTECA/blob/master/WhatsApp%20Image%202026-05-14%20at%201.09.37%20PM.jpeg?raw=true" />
 
 ---
 
