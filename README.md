@@ -27,7 +27,7 @@ Estas entidades permiten organizar la información y establecer relaciones media
 - Especialidad: Programación  
 - Institución: CETis 61  
 - ## 📸 Fotografía
-<img width="236" height="248" alt="image" src="https://github.com/user-attachments/assets/e526fa82-66ea-4b21-9d92-b7ee81fbef2d" />
+<img width="236" height="248" alt="image" src="AQUI_PEGA_EL_LINK" />
 
 ### Loretto Daniel Molina Moncada
 - Edad: 17 años  
