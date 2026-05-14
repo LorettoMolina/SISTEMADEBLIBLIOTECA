@@ -26,7 +26,7 @@ Estas entidades permiten organizar la información y establecer relaciones media
 - Correo Electrónico: 23308060610140@cetis61.edu.mx  
 - Especialidad: Programación  
 - Institución: CETis 61  
-- ## 📸 Fotografía
+- ##  Fotografía
 <img width="236" height="248" alt="image" src="https://github.com/LorettoMolina/SISTEMADEBLIBLIOTECA/blob/master/WhatsApp%20Image%202026-05-14%20at%201.09.30%20PM.jpeg?raw=true" />
 
 ### Loretto Daniel Molina Moncada
@@ -34,7 +34,7 @@ Estas entidades permiten organizar la información y establecer relaciones media
 - Correo Electrónico: 23308060610601@cetis61.edu.mx  
 - Especialidad: Programación  
 - Institución: CETis 61 
-- ## 📸 Fotografía
+- ##  Fotografía
 <img width="236" height="248" alt="image" src="https://github.com/LorettoMolina/SISTEMADEBLIBLIOTECA/blob/master/WhatsApp%20Image%202026-05-14%20at%201.09.37%20PM.jpeg?raw=true" />
 
 ---
