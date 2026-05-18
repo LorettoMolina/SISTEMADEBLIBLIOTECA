@@ -46,10 +46,7 @@ def main(page: ft.Page):
     page.horizontal_alignment = "center"
     page.vertical_alignment = "center"
 
-    # ==========================================
-    # CAMPOS LOGIN
-    # ==========================================
-
+    # LOGIN CAMPOS
     correo_login = ft.TextField(
         label="Correo",
         width=320,
@@ -66,10 +63,7 @@ def main(page: ft.Page):
 
     mensaje = ft.Text()
 
-    # ==========================================
     # LOGIN
-    # ==========================================
-
     def iniciar_sesion(e):
 
         sql = """
@@ -77,235 +71,112 @@ def main(page: ft.Page):
         WHERE correo=%s AND contrasena=%s
         """
 
-        valores = (
-            correo_login.value,
-            password_login.value
-        )
-
-        cursor.execute(sql, valores)
-
+        cursor.execute(sql, (correo_login.value, password_login.value))
         usuario = cursor.fetchone()
 
         if usuario:
-
             mensaje.value = f"Bienvenido {usuario[1]}"
             mensaje.color = "green"
-
         else:
-
             mensaje.value = "Correo o contraseña incorrectos"
             mensaje.color = "red"
 
         page.update()
 
-    # ==========================================
-    # IR REGISTRO
-    # ==========================================
-
+    # REGISTRO
     def abrir_registro(e):
 
         page.clean()
 
-        nombre = ft.TextField(
-            label="Nombre",
-            width=320,
-            border_radius=15
-        )
-
-        apellido = ft.TextField(
-            label="Apellido",
-            width=320,
-            border_radius=15
-        )
-
-        telefono = ft.TextField(
-            label="Teléfono",
-            width=320,
-            border_radius=15
-        )
-
-        correo = ft.TextField(
-            label="Correo",
-            width=320,
-            border_radius=15
-        )
-
-        password = ft.TextField(
-            label="Contraseña",
-            password=True,
-            can_reveal_password=True,
-            width=320,
-            border_radius=15
-        )
+        nombre = ft.TextField(label="Nombre", width=320, border_radius=15)
+        apellido = ft.TextField(label="Apellido", width=320, border_radius=15)
+        telefono = ft.TextField(label="Teléfono", width=320, border_radius=15)
+        correo = ft.TextField(label="Correo", width=320, border_radius=15)
+        password = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=320, border_radius=15)
 
         mensaje_registro = ft.Text()
 
         def registrar(e):
 
             sql = """
-            INSERT INTO usuarios
-            (nombre, apellido, telefono, correo, contrasena)
+            INSERT INTO usuarios (nombre, apellido, telefono, correo, contrasena)
             VALUES (%s,%s,%s,%s,%s)
             """
 
-            valores = (
-                nombre.value,
-                apellido.value,
-                telefono.value,
-                correo.value,
-                password.value
-            )
-
             try:
-
-                cursor.execute(sql, valores)
+                cursor.execute(sql, (nombre.value, apellido.value, telefono.value, correo.value, password.value))
                 conexion.commit()
-
                 mensaje_registro.value = "Usuario registrado"
                 mensaje_registro.color = "green"
-
             except Exception as error:
-
                 mensaje_registro.value = str(error)
                 mensaje_registro.color = "red"
 
             page.update()
 
         page.add(
-
             ft.Column(
-
                 horizontal_alignment="center",
-
                 controls=[
-
-                    ft.Text(
-                        "REGISTRO",
-                        size=35,
-                        weight="bold",
-                        color="cyan"
-                    ),
-
+                    ft.Icon(ft.icons.BOOK, size=90, color="cyan"),
+                    ft.Text("REGISTRO", size=35, weight="bold", color="cyan"),
                     nombre,
                     apellido,
                     telefono,
                     correo,
                     password,
-
-                    ft.ElevatedButton(
-                        "Registrarse",
-                        width=320,
-                        height=50,
-                        bgcolor="cyan",
-                        color="black",
-                        on_click=registrar
-                    ),
-
+                    ft.ElevatedButton("Registrarse", width=320, height=50, bgcolor="cyan", color="black", on_click=registrar),
                     mensaje_registro,
-
-                    ft.TextButton(
-                        "Volver al Login",
-                        on_click=volver_login
-                    )
-
+                    ft.TextButton("Volver al Login", on_click=volver_login)
                 ]
             )
         )
 
-    # ==========================================
     # RECUPERAR
-    # ==========================================
-
     def recuperar_password(e):
 
         page.clean()
 
-        correo = ft.TextField(
-            label="Correo",
-            width=320,
-            border_radius=15
-        )
-
-        codigo = ft.TextField(
-            label="Código",
-            width=320,
-            border_radius=15
-        )
-
-        nueva_password = ft.TextField(
-            label="Nueva contraseña",
-            password=True,
-            can_reveal_password=True,
-            width=320,
-            border_radius=15
-        )
+        correo = ft.TextField(label="Correo", width=320, border_radius=15)
+        codigo = ft.TextField(label="Código", width=320, border_radius=15)
+        nueva_password = ft.TextField(label="Nueva contraseña", password=True, can_reveal_password=True, width=320, border_radius=15)
 
         mensaje_rec = ft.Text()
-
-        # ==========================================
 
         def enviar_codigo(e):
 
             global codigo_recuperacion
 
-            sql = "SELECT * FROM usuarios WHERE correo=%s"
-
-            cursor.execute(sql, (correo.value,))
-
+            cursor.execute("SELECT * FROM usuarios WHERE correo=%s", (correo.value,))
             usuario = cursor.fetchone()
 
             if usuario:
 
-                codigo_recuperacion = str(
-                    random.randint(100000, 999999)
-                )
+                codigo_recuperacion = str(random.randint(100000, 999999))
 
-                mensaje_correo = MIMEText(
-                    f"Tu código es: {codigo_recuperacion}"
-                )
-
-                mensaje_correo["Subject"] = "Recuperar contraseña"
-
-                mensaje_correo["From"] = CORREO_SISTEMA
-
-                mensaje_correo["To"] = correo.value
+                msg = MIMEText(f"Tu código es: {codigo_recuperacion}")
+                msg["Subject"] = "Recuperar contraseña"
+                msg["From"] = CORREO_SISTEMA
+                msg["To"] = correo.value
 
                 try:
-
-                    servidor = smtplib.SMTP(
-                        "smtp.gmail.com",
-                        587
-                    )
-
-                    servidor.starttls()
-
-                    servidor.login(
-                        CORREO_SISTEMA,
-                        PASSWORD_CORREO
-                    )
-
-                    servidor.send_message(
-                        mensaje_correo
-                    )
-
-                    servidor.quit()
+                    server = smtplib.SMTP("smtp.gmail.com", 587)
+                    server.starttls()
+                    server.login(CORREO_SISTEMA, PASSWORD_CORREO)
+                    server.send_message(msg)
+                    server.quit()
 
                     mensaje_rec.value = "Código enviado"
                     mensaje_rec.color = "green"
-
                 except Exception as error:
-
                     mensaje_rec.value = str(error)
                     mensaje_rec.color = "red"
 
             else:
-
                 mensaje_rec.value = "Correo no encontrado"
                 mensaje_rec.color = "red"
 
             page.update()
-
-        # ==========================================
 
         def cambiar_password(e):
 
@@ -313,18 +184,10 @@ def main(page: ft.Page):
 
             if codigo.value == codigo_recuperacion:
 
-                sql = """
-                UPDATE usuarios
-                SET contrasena=%s
-                WHERE correo=%s
-                """
-
-                valores = (
-                    nueva_password.value,
-                    correo.value
+                cursor.execute(
+                    "UPDATE usuarios SET contrasena=%s WHERE correo=%s",
+                    (nueva_password.value, correo.value)
                 )
-
-                cursor.execute(sql, valores)
 
                 conexion.commit()
 
@@ -332,114 +195,45 @@ def main(page: ft.Page):
                 mensaje_rec.color = "green"
 
             else:
-
                 mensaje_rec.value = "Código incorrecto"
                 mensaje_rec.color = "red"
 
             page.update()
 
         page.add(
-
             ft.Column(
-
                 horizontal_alignment="center",
-
                 controls=[
-
-                    ft.Text(
-                        "RECUPERAR",
-                        size=35,
-                        weight="bold",
-                        color="cyan"
-                    ),
-
+                    ft.Icon(ft.icons.LOCK, size=90, color="cyan"),
+                    ft.Text("RECUPERAR", size=35, weight="bold", color="cyan"),
                     correo,
-
-                    ft.ElevatedButton(
-                        "Enviar código",
-                        width=320,
-                        height=50,
-                        bgcolor="cyan",
-                        color="black",
-                        on_click=enviar_codigo
-                    ),
-
+                    ft.ElevatedButton("Enviar código", width=320, height=50, bgcolor="cyan", color="black", on_click=enviar_codigo),
                     codigo,
                     nueva_password,
-
-                    ft.ElevatedButton(
-                        "Cambiar contraseña",
-                        width=320,
-                        height=50,
-                        bgcolor="cyan",
-                        color="black",
-                        on_click=cambiar_password
-                    ),
-
+                    ft.ElevatedButton("Cambiar contraseña", width=320, height=50, bgcolor="cyan", color="black", on_click=cambiar_password),
                     mensaje_rec,
-
-                    ft.TextButton(
-                        "Volver al Login",
-                        on_click=volver_login
-                    )
-
+                    ft.TextButton("Volver al Login", on_click=volver_login)
                 ]
             )
         )
 
-    # ==========================================
     # LOGIN SCREEN
-    # ==========================================
-
     def volver_login(e=None):
 
         page.clean()
 
         page.add(
-
             ft.Column(
-
                 horizontal_alignment="center",
-
                 controls=[
-
-                    ft.Icon(
-                        ft.icons.LOCAL_LIBRARY,
-                        size=100,
-                        color="cyan"
-                    ),
-
-                    ft.Text(
-                        "SISTEMA BIBLIOTECA",
-                        size=30,
-                        weight="bold",
-                        color="cyan"
-                    ),
-
+                    ft.Icon(ft.icons.BOOK, size=100, color="cyan"),
+                    ft.Text("SISTEMA BIBLIOTECA", size=30, weight="bold", color="cyan"),
                     correo_login,
                     password_login,
-
-                    ft.ElevatedButton(
-                        "Iniciar Sesión",
-                        width=320,
-                        height=50,
-                        bgcolor="cyan",
-                        color="black",
-                        on_click=iniciar_sesion
-                    ),
-
+                    ft.ElevatedButton("Iniciar Sesión", width=320, height=50, bgcolor="cyan", color="black", on_click=iniciar_sesion),
                     mensaje,
-
-                    ft.TextButton(
-                        "¿No tienes cuenta? Registrarse",
-                        on_click=abrir_registro
-                    ),
-
-                    ft.TextButton(
-                        "¿Olvidaste tu contraseña?",
-                        on_click=recuperar_password
-                    )
-
+                    ft.TextButton("¿No tienes cuenta? Registrarse", on_click=abrir_registro),
+                    ft.TextButton("¿Olvidaste tu contraseña?", on_click=recuperar_password)
                 ]
             )
         )
