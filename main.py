@@ -1,296 +1,232 @@
-import flet as ft
-import mysql.connector
-import random
-import smtplib
-from email.mime.text import MIMEText
+def abrir_sistema(usuario):
 
+    page.clean()
 
-conexion = mysql.connector.connect(
-    host="127.0.0.1",
-    user="root",
-    password="",
-    database="biblioteca"
-)
+    # =========================================
+    # CAMPOS LIBROS
+    # =========================================
 
-cursor = conexion.cursor()
+    txt_titulo = ft.TextField(label="Título", width=250)
+    txt_autor = ft.TextField(label="Autor", width=250)
+    txt_categoria = ft.TextField(label="Categoría", width=250)
+    txt_stock = ft.TextField(label="Stock", width=250)
 
-CORREO_SISTEMA = "23308060610601@cetis61.edu.mx"
-PASSWORD_CORREO = "fpot ykuc ebut gsuk"
+    tabla = ft.Column()
 
-codigo_recuperacion = ""
+    libro_id = {"id": None}
 
+    
 
-def main(page: ft.Page):
+    def cargar_libros():
 
-    global codigo_recuperacion
+        tabla.controls.clear()
 
-    page.title = "Sistema Biblioteca"
-    page.window.width = 450
-    page.window.height = 700
+        cursor.execute("SELECT * FROM libros")
+        libros = cursor.fetchall()
 
-    page.theme_mode = ft.ThemeMode.DARK
-    page.bgcolor = "#0f172a"
+        for libro in libros:
 
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-
-    # ---------------- LOGIN ----------------
-    correo_login = ft.TextField(label="Correo", width=320, border_radius=15)
-    password_login = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=320, border_radius=15)
-    mensaje = ft.Text()
-
-    # --------- DASHBOARD (NUEVO) ----------
-    def abrir_sistema(usuario):
-        page.clean()
-
-        page.add(
-            ft.Container(
-                expand=True,
-                padding=20,
-                bgcolor="#0f172a",
-                content=ft.Column(
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    controls=[
-
-                        ft.Icon(ft.Icons.LIBRARY_BOOKS, size=100, color="cyan"),
-
-                        ft.Text(
-                            "SISTEMA BIBLIOTECA",
-                            size=32,
-                            weight=ft.FontWeight.BOLD,
-                            color="cyan"
-                        ),
-
-                        ft.Text(
-                            f"Bienvenido: {usuario[1]} {usuario[2]}",
-                            size=18,
-                            color="white"
-                        ),
-
-                        ft.Divider(),
-
-                        ft.Row(
-                            alignment=ft.MainAxisAlignment.CENTER,
-                            controls=[
-
-                                ft.ElevatedButton(
-                                    "📚 Libros",
-                                    width=150,
-                                    bgcolor="cyan",
-                                    color="black"
-                                ),
-
-                                ft.ElevatedButton(
-                                    "👤 Usuarios",
-                                    width=150,
-                                    bgcolor="cyan",
-                                    color="black"
-                                ),
-                            ]
-                        ),
-
-                        ft.ElevatedButton(
-                            "Cerrar sesión",
-                            width=200,
-                            bgcolor="red",
-                            color="white",
-                            on_click=volver_login
-                        )
-                    ]
-                )
-            )
-        )
-
-        page.update()
-
-    # ---------------- LOGIN ----------------
-    def iniciar_sesion(e):
-
-        sql = """
-        SELECT * FROM usuarios
-        WHERE correo=%s AND contrasena=%s
-        """
-
-        cursor.execute(sql, (correo_login.value, password_login.value))
-        usuario = cursor.fetchone()
-
-        if usuario:
-            abrir_sistema(usuario)
-            return
-        else:
-            mensaje.value = "Correo o contraseña incorrectos"
-            mensaje.color = "red"
-
-        page.update()
-
-    # ---------------- REGISTRO ----------------
-    def abrir_registro(e):
-        page.clean()
-
-        nombre = ft.TextField(label="Nombre", width=320)
-        apellido = ft.TextField(label="Apellido", width=320)
-        telefono = ft.TextField(label="Teléfono", width=320)
-        correo = ft.TextField(label="Correo", width=320)
-        password = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=320)
-
-        mensaje_registro = ft.Text()
-
-        def registrar(e):
-            sql = """
-            INSERT INTO usuarios (nombre, apellido, telefono, correo, contrasena)
-            VALUES (%s,%s,%s,%s,%s)
-            """
-
-            try:
-                cursor.execute(sql, (
-                    nombre.value,
-                    apellido.value,
-                    telefono.value,
-                    correo.value,
-                    password.value
-                ))
-
-                conexion.commit()
-
-                mensaje_registro.value = "Usuario registrado"
-                mensaje_registro.color = "green"
-
-            except Exception as error:
-                mensaje_registro.value = str(error)
-                mensaje_registro.color = "red"
-
-            page.update()
-
-        page.add(
-            ft.Column(
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            fila = ft.Row(
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 controls=[
-                    ft.Text("REGISTRO", size=30, color="cyan"),
-                    nombre,
-                    apellido,
-                    telefono,
-                    correo,
-                    password,
 
-                    ft.ElevatedButton("Registrarse", width=320, bgcolor="cyan", color="black", on_click=registrar),
-
-                    mensaje_registro,
-
-                    ft.TextButton("Volver al Login", on_click=volver_login)
-                ]
-            )
-        )
-
-    # ---------------- RECUPERAR ----------------
-    def recuperar_password(e):
-        page.clean()
-
-        correo = ft.TextField(label="Correo", width=320)
-        codigo = ft.TextField(label="Código", width=320)
-        nueva_password = ft.TextField(label="Nueva contraseña", password=True, can_reveal_password=True, width=320)
-
-        mensaje_rec = ft.Text()
-
-        def enviar_codigo(e):
-            global codigo_recuperacion
-
-            cursor.execute("SELECT * FROM usuarios WHERE correo=%s", (correo.value,))
-            usuario = cursor.fetchone()
-
-            if usuario:
-                codigo_recuperacion = str(random.randint(100000, 999999))
-
-                msg = MIMEText(f"Tu código es: {codigo_recuperacion}")
-                msg["Subject"] = "Recuperar contraseña"
-                msg["From"] = CORREO_SISTEMA
-                msg["To"] = correo.value
-
-                try:
-                    server = smtplib.SMTP("smtp.gmail.com", 587)
-                    server.starttls()
-                    server.login(CORREO_SISTEMA, PASSWORD_CORREO)
-                    server.send_message(msg)
-                    server.quit()
-
-                    mensaje_rec.value = "Código enviado"
-                    mensaje_rec.color = "green"
-
-                except Exception as error:
-                    mensaje_rec.value = str(error)
-                    mensaje_rec.color = "red"
-            else:
-                mensaje_rec.value = "Correo no encontrado"
-                mensaje_rec.color = "red"
-
-            page.update()
-
-        def cambiar_password(e):
-            global codigo_recuperacion
-
-            if codigo.value == codigo_recuperacion:
-
-                cursor.execute("""
-                    UPDATE usuarios
-                    SET contrasena=%s
-                    WHERE correo=%s
-                """, (nueva_password.value, correo.value))
-
-                conexion.commit()
-
-                mensaje_rec.value = "Contraseña actualizada"
-                mensaje_rec.color = "green"
-
-            else:
-                mensaje_rec.value = "Código incorrecto"
-                mensaje_rec.color = "red"
-
-            page.update()
-
-        page.add(
-            ft.Column(
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                controls=[
-                    correo,
-                    ft.ElevatedButton("Enviar código", on_click=enviar_codigo),
-                    codigo,
-                    nueva_password,
-                    ft.ElevatedButton("Cambiar contraseña", on_click=cambiar_password),
-                    mensaje_rec,
-                    ft.TextButton("Volver al Login", on_click=volver_login)
-                ]
-            )
-        )
-
-    # ---------------- LOGIN UI ----------------
-    def volver_login(e=None):
-        page.clean()
-
-        page.add(
-            ft.Column(
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                controls=[
-                    ft.Text("SISTEMA BIBLIOTECA", size=30, color="cyan"),
-
-                    correo_login,
-                    password_login,
-
-                    ft.ElevatedButton(
-                        "Iniciar Sesión",
-                        width=320,
-                        bgcolor="cyan",
-                        color="black",
-                        on_click=iniciar_sesion
+                    ft.Text(
+                        f"{libro[1]} | {libro[2]} | {libro[3]} | Stock: {libro[4]}",
+                        color="white",
+                        width=300
                     ),
 
-                    mensaje,
+                    ft.Row([
+                        ft.IconButton(
+                            icon=ft.Icons.EDIT,
+                            icon_color="yellow",
+                            on_click=lambda e, l=libro: editar_libro(l)
+                        ),
 
-                    ft.TextButton("Registrarse", on_click=abrir_registro),
-                    ft.TextButton("Recuperar contraseña", on_click=recuperar_password)
+                        ft.IconButton(
+                            icon=ft.Icons.DELETE,
+                            icon_color="red",
+                            on_click=lambda e, id=libro[0]: eliminar_libro(id)
+                        )
+                    ])
+                ]
+            )
+
+            tabla.controls.append(fila)
+
+        page.update()
+
+    
+
+    def limpiar():
+
+        txt_titulo.value = ""
+        txt_autor.value = ""
+        txt_categoria.value = ""
+        txt_stock.value = ""
+
+        libro_id["id"] = None
+
+        btn_guardar.text = "Agregar Libro"
+
+        page.update()
+
+    
+
+    def agregar_libro(e):
+
+        sql = """
+        INSERT INTO libros
+        (titulo, autor, categoria, stock)
+        VALUES (%s,%s,%s,%s)
+        """
+
+        valores = (
+            txt_titulo.value,
+            txt_autor.value,
+            txt_categoria.value,
+            txt_stock.value
+        )
+
+        cursor.execute(sql, valores)
+        conexion.commit()
+
+        limpiar()
+        cargar_libros()
+
+    
+
+    def editar_libro(libro):
+
+        libro_id["id"] = libro[0]
+
+        txt_titulo.value = libro[1]
+        txt_autor.value = libro[2]
+        txt_categoria.value = libro[3]
+        txt_stock.value = str(libro[4])
+
+        btn_guardar.text = "Actualizar Libro"
+
+        page.update()
+
+    
+    def actualizar_libro(e):
+
+        sql = """
+        UPDATE libros
+        SET titulo=%s,
+            autor=%s,
+            categoria=%s,
+            stock=%s
+        WHERE id=%s
+        """
+
+        valores = (
+            txt_titulo.value,
+            txt_autor.value,
+            txt_categoria.value,
+            txt_stock.value,
+            libro_id["id"]
+        )
+
+        cursor.execute(sql, valores)
+        conexion.commit()
+
+        limpiar()
+        cargar_libros()
+
+    
+    def eliminar_libro(id):
+
+        cursor.execute(
+            "DELETE FROM libros WHERE id=%s",
+            (id,)
+        )
+
+        conexion.commit()
+
+        cargar_libros()
+
+    
+
+    def guardar(e):
+
+        if libro_id["id"] is None:
+            agregar_libro(e)
+        else:
+            actualizar_libro(e)
+
+    btn_guardar = ft.ElevatedButton(
+        "Agregar Libro",
+        bgcolor="cyan",
+        color="black",
+        width=250,
+        on_click=guardar
+    )
+
+    
+    cargar_libros()
+
+    page.add(
+        ft.Container(
+            expand=True,
+            padding=20,
+            bgcolor="#0f172a",
+
+            content=ft.Column(
+                scroll=ft.ScrollMode.AUTO,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+
+                controls=[
+
+                    ft.Icon(
+                        ft.Icons.LIBRARY_BOOKS,
+                        size=100,
+                        color="cyan"
+                    ),
+
+                    ft.Text(
+                        "SISTEMA BIBLIOTECA",
+                        size=32,
+                        weight=ft.FontWeight.BOLD,
+                        color="cyan"
+                    ),
+
+                    ft.Text(
+                        f"Bienvenido: {usuario[1]} {usuario[2]}",
+                        size=18,
+                        color="white"
+                    ),
+
+                    ft.Divider(),
+
+                    ft.Text(
+                        "CRUD LIBROS",
+                        size=25,
+                        color="cyan"
+                    ),
+
+                    txt_titulo,
+                    txt_autor,
+                    txt_categoria,
+                    txt_stock,
+
+                    btn_guardar,
+
+                    ft.Divider(),
+
+                    tabla,
+
+                    ft.ElevatedButton(
+                        "Cerrar sesión",
+                        width=200,
+                        bgcolor="red",
+                        color="white",
+                        on_click=volver_login
+                    )
                 ]
             )
         )
+    )
 
-    volver_login()
-
-
-ft.app(target=main)
+    page.update()
