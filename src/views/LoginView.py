@@ -1,5 +1,7 @@
 import flet as ft
 from src.controllers.UserController import UserController
+from src.views.DashboardView import DashboardView
+
 
 class LoginView:
 
@@ -18,16 +20,23 @@ class LoginView:
         )
 
         if usuario:
-            self.msg.value = "Bienvenido"
-            self.msg.color = "green"
+            self.page.clean()
+
+            dashboard = DashboardView(self.page)
+            self.page.add(dashboard.build())
+
         else:
             self.msg.value = "Datos incorrectos"
             self.msg.color = "red"
-
-        self.page.update()
+            self.page.update()
 
     def go_register(self, e):
-        self.page.go("/register")
+        self.page.clean()
+
+        from src.views.RegisterView import RegisterView
+        register = RegisterView(self.page)
+
+        self.page.add(register.build())
 
     def build(self):
         return ft.Column(

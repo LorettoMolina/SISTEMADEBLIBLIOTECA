@@ -1,6 +1,6 @@
 import bcrypt
-
 from src.models.databaseModel import cursor, conexion
+
 
 class UserModel:
 
@@ -8,9 +8,9 @@ class UserModel:
     def registrar(nombre, apellido, telefono, correo, password):
 
         password_hash = bcrypt.hashpw(
-            password.encode(),
+            password.encode('utf-8'),
             bcrypt.gensalt()
-        ).decode()
+        ).decode('utf-8')
 
         cursor.execute(
             """
@@ -18,13 +18,7 @@ class UserModel:
             (nombre, apellido, telefono, correo, contrasena)
             VALUES (%s,%s,%s,%s,%s)
             """,
-            (
-                nombre,
-                apellido,
-                telefono,
-                correo,
-                password_hash
-            )
+            (nombre, apellido, telefono, correo, password_hash)
         )
 
         conexion.commit()
@@ -39,15 +33,21 @@ class UserModel:
 
         usuario = cursor.fetchone()
 
-        if usuario:
+        if not usuario:
+            return None
 
+        try:
             password_db = usuario[5]
 
+            # 🔥 FIX ROBUSTO
             if bcrypt.checkpw(
-                password.encode(),
-                password_db.encode()
+                password.encode('utf-8'),
+                password_db.encode('utf-8')
             ):
                 return usuario
+
+        except ValueError as e:
+            print("ERROR BCRYPT:", e)
 
         return None
 
@@ -65,9 +65,9 @@ class UserModel:
     def cambiar_password(correo, nueva_password):
 
         hash_password = bcrypt.hashpw(
-            nueva_password.encode(),
+            nueva_password.encode('utf-8'),
             bcrypt.gensalt()
-        ).decode()
+        ).decode('utf-8')
 
         cursor.execute(
             """
@@ -75,10 +75,7 @@ class UserModel:
             SET contrasena=%s
             WHERE correo=%s
             """,
-            (
-                hash_password,
-                correo
-            )
+            (hash_password, correo)
         )
 
         conexion.commit()

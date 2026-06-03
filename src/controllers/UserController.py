@@ -1,24 +1,15 @@
 from src.models.UserModel import UserModel
 
+
 class UserController:
 
     @staticmethod
-    def login(correo,password):
-        return UserModel.login(
-            correo,
-            password
-        )
+    def login(correo, password):
+        return UserModel.login(correo, password)
 
     @staticmethod
-    def registrar(
-        nombre,
-        apellido,
-        telefono,
-        correo,
-        password
-    ):
-
-        UserModel.registrar(
+    def registrar(nombre, apellido, telefono, correo, password):
+        return UserModel.registrar(
             nombre,
             apellido,
             telefono,
@@ -31,11 +22,5 @@ class UserController:
         return UserModel.buscar_correo(correo)
 
     @staticmethod
-    def cambiar_password(
-        correo,
-        nueva_password
-    ):
-        UserModel.cambiar_password(
-            correo,
-            nueva_password
-        )
+    def cambiar_password(correo, nueva_password):
+        return UserModel.cambiar_password(correo, nueva_password)

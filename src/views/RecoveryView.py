@@ -1,49 +1,54 @@
-import random
-import smtplib
-import os
+import flet as ft
+from src.services.recovery_service import enviar_codigo
 
-from email.mime.text import MIMEText
-from dotenv import load_dotenv
 
-load_dotenv()
+class RecoveryView:
 
-MAIL_USER = os.getenv("MAIL_USER")
-MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+    def __init__(self, page):
+        self.page = page
 
-codigo_recuperacion = ""
+        self.correo = ft.TextField(label="Correo")
+        self.codigo = ft.TextField(label="Código recibido")
+        self.msg = ft.Text()
 
-def enviar_codigo(correo_destino):
+    def enviar(self, e):
 
-    global codigo_recuperacion
+        codigo = enviar_codigo(self.correo.value)
 
-    codigo_recuperacion = str(
-        random.randint(100000,999999)
-    )
+        if codigo:
+            self.msg.value = "Código enviado al correo"
+            self.msg.color = "green"
+        else:
+            self.msg.value = "Error al enviar código"
+            self.msg.color = "red"
 
-    mensaje = MIMEText(
-        f"Tu código es: {codigo_recuperacion}"
-    )
+        self.page.update()
 
-    mensaje["Subject"] = "Recuperación"
-    mensaje["From"] = MAIL_USER
-    mensaje["To"] = correo_destino
+    def validar(self, e):
 
-    servidor = smtplib.SMTP(
-        "smtp.gmail.com",
-        587
-    )
+        from src.services.recovery_service import codigo_recuperacion
 
-    servidor.starttls()
+        if self.codigo.value == codigo_recuperacion:
+            self.msg.value = "Código correcto"
+            self.msg.color = "green"
+        else:
+            self.msg.value = "Código incorrecto"
+            self.msg.color = "red"
 
-    servidor.login(
-        MAIL_USER,
-        MAIL_PASSWORD
-    )
+        self.page.update()
 
-    servidor.send_message(
-        mensaje
-    )
+    def build(self):
 
-    servidor.quit()
+        return ft.Column(
+            controls=[
+                ft.Text("Recuperar contraseña", size=30),
 
-    return codigo_recuperacion
+                self.correo,
+                ft.ElevatedButton("Enviar código", on_click=self.enviar),
+
+                self.codigo,
+                ft.ElevatedButton("Validar código", on_click=self.validar),
+
+                self.msg
+            ]
+        )

@@ -1,10 +1,10 @@
 import flet as ft
-from src.controllers.LibrosController import LibrosController
+from src.controllers.LibroController import LibroController
+
 
 class DashboardView:
 
     def __init__(self, page):
-
         self.page = page
         self.tabla = ft.Column()
 
@@ -12,11 +12,14 @@ class DashboardView:
 
         self.tabla.controls.clear()
 
-        for libro in LibrosController.listar():
+        libros = LibroController.listar()
 
+        for libro in libros:
             self.tabla.controls.append(
-                ft.Text(libro[1])
+                ft.Text(f"{libro[1]} - {libro[2]} - {libro[3]}")
             )
+
+        self.page.update()
 
     def build(self):
 
@@ -24,7 +27,7 @@ class DashboardView:
 
         return ft.Column(
             controls=[
-                ft.Text("Dashboard"),
+                ft.Text("Dashboard", size=30),
                 self.tabla
             ]
         )

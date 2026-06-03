@@ -1,5 +1,6 @@
 from src.models.LibroModel import LibroModel
 
+
 class LibroController:
 
     @staticmethod
@@ -7,13 +8,8 @@ class LibroController:
         return LibroModel.obtener_todos()
 
     @staticmethod
-    def agregar(
-        titulo,
-        autor,
-        categoria,
-        stock
-    ):
-        LibroModel.agregar(
+    def agregar(titulo, autor, categoria, stock):
+        return LibroModel.agregar(
             titulo,
             autor,
             categoria,
@@ -21,14 +17,8 @@ class LibroController:
         )
 
     @staticmethod
-    def actualizar(
-        id_libro,
-        titulo,
-        autor,
-        categoria,
-        stock
-    ):
-        LibroModel.actualizar(
+    def actualizar(id_libro, titulo, autor, categoria, stock):
+        return LibroModel.actualizar(
             id_libro,
             titulo,
             autor,
@@ -38,4 +28,4 @@ class LibroController:
 
     @staticmethod
     def eliminar(id_libro):
-        LibroModel.eliminar(id_libro)
+        return LibroModel.eliminar(id_libro)
